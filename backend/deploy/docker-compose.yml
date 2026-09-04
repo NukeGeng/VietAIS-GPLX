@@ -3,14 +3,14 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: gplx
-      POSTGRES_USER: gplx
-      POSTGRES_PASSWORD: gplx
+      POSTGRES_USER: ${GPLX_POSTGRES_USER:-gplx}
+      POSTGRES_PASSWORD: ${GPLX_POSTGRES_PASSWORD:?set GPLX_POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - gplx-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gplx -d gplx"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -21,7 +21,7 @@ services:
       dockerfile: backend/deploy/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=gplx;Username=gplx;Password=gplx
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=gplx;Username=${GPLX_POSTGRES_USER:-gplx};Password=${GPLX_POSTGRES_PASSWORD:?set GPLX_POSTGRES_PASSWORD}
       Seed__Enabled: "true"
       Seed__DataRoot: /app/data/normalized
       Jwt__SigningKey: ${GPLX_JWT_SIGNING_KEY:?set GPLX_JWT_SIGNING_KEY}
