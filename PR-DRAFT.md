@@ -45,6 +45,7 @@ Inline `ExamAttemptView`/`ExamAttemptSnapshot` provide immediate command feedbac
 - NuGet vulnerability check — no vulnerable packages
 - Docker Compose syntax — pass with required environment placeholders
 - API smoke: health, public question/practice/regulation/blueprint endpoints, admin login/permissions, projection status, B exam start/answer/submit
+- Exam interaction smoke: flag/unflag updates the inline attempt view and is exposed in the exam question index and current-question toolbar.
 - Analytics smoke: projection rebuild returns `202`, preserves the aggregate total, restarts the daemon shard, and a post-rebuild 30-question exam increments analytics exactly once.
 - SSR smoke: `/`, `/questions`, `/practice`, `/regulations`, `/licenses/b`, `/admin/login`, `/admin`, `/sitemap.xml`; invalid license returns 404
 

@@ -8,9 +8,7 @@ const { data: attemptData, error: attemptError } = await useAsyncData(
   { default: () => null },
 );
 const attempt = computed(() => attemptData.value?.view ?? attemptData.value);
-const questionIds = computed(
-  () => attempt.value?.questionIds ?? [],
-);
+const questionIds = computed(() => attempt.value?.questionIds ?? []);
 const { data: questionData } = await useAsyncData(
   `exam-questions-${attemptId}`,
   async () => {
@@ -22,6 +20,9 @@ const { data: questionData } = await useAsyncData(
   { default: () => [] },
 );
 const questions = computed(() => questionData.value ?? []);
+const flaggedQuestionIds = computed(
+  () => new Set(attempt.value?.flaggedQuestionIds ?? []),
+);
 const currentIndex = ref(0);
 const saving = ref(false);
 const submitError = ref("");
@@ -31,6 +32,12 @@ const selectedOption = computed(
 );
 const answeredCount = computed(
   () => Object.keys(attempt.value?.answers ?? {}).length,
+);
+const currentQuestionFlagged = computed(
+  () =>
+    currentQuestion.value
+      ? flaggedQuestionIds.value.has(currentQuestion.value.id)
+      : false,
 );
 
 useSeoMeta({ title: "Thi thử GPLX — VietAIS", robots: "noindex,nofollow" });
@@ -60,6 +67,26 @@ async function submitExam() {
     await navigateTo(`/result/${attemptId}`);
   } catch {
     submitError.value = "Không thể nộp bài lúc này.";
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function toggleFlag() {
+  if (!currentQuestion.value || saving.value) return;
+  saving.value = true;
+  submitError.value = "";
+  try {
+    const result = await request<{ view: any }>(`/exams/${attemptId}/flags`, {
+      method: "POST",
+      body: {
+        questionId: currentQuestion.value.id,
+        flagged: !currentQuestionFlagged.value,
+      },
+    });
+    attemptData.value = result as any;
+  } catch {
+    submitError.value = "Không cập nhật được trạng thái đánh dấu. Hãy thử lại.";
   } finally {
     saving.value = false;
   }
@@ -106,7 +133,9 @@ async function submitExam() {
               :class="{
                 active: index === currentIndex,
                 answered: attempt?.answers?.[question.id],
+                flagged: flaggedQuestionIds.has(question.id),
               }"
+              :aria-label="`Câu ${index + 1}${flaggedQuestionIds.has(question.id) ? ', đã đánh dấu' : ''}`"
               @click="currentIndex = index"
             >
               {{ index + 1 }}
@@ -121,9 +150,21 @@ async function submitExam() {
           </button>
         </aside>
         <article v-if="currentQuestion" class="exam-question surface-card">
-          <div class="detail-meta">
-            <span>Câu {{ currentIndex + 1 }} / {{ questions.length }}</span
-            ><span>{{ currentQuestion.topic }}</span>
+          <div class="exam-question-toolbar">
+            <div class="detail-meta">
+              <span>Câu {{ currentIndex + 1 }} / {{ questions.length }}</span
+              ><span>{{ currentQuestion.topic }}</span>
+            </div>
+            <button
+              type="button"
+              class="flag-button"
+              :class="{ active: currentQuestionFlagged }"
+              :aria-pressed="currentQuestionFlagged"
+              :disabled="saving"
+              @click="toggleFlag"
+            >
+              {{ currentQuestionFlagged ? "Bỏ đánh dấu" : "Đánh dấu câu này" }}
+            </button>
           </div>
           <h2>{{ currentQuestion.text }}</h2>
           <div class="answer-list">

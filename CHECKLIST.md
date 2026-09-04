@@ -6,7 +6,7 @@ Ngày kiểm tra: 2026-09-04
 
 - [x] Official data được normalize, validate và seed/import. Bundle hiện có 600 câu, 60 câu điểm liệt; validator pass; API development seed đã ghi dữ liệu vào Marten.
 - [x] Public question/practice reads chỉ expose câu thuộc Question Bank đã publish; import version mới không ghi đè identity câu hỏi của version cũ.
-- [x] Guest chọn hạng bằng và thi thử end-to-end. Smoke test B chạy `start → 30 answers → submit`: 30/30, 0 critical mistake, `passed=true`.
+- [x] Guest chọn hạng bằng và thi thử end-to-end. Smoke test B chạy `start → 30 answers → submit`: 30/30, 0 critical mistake, `passed=true`; flag/unflag cũng đã kiểm tra qua API và được expose trên màn hình thi.
 - [x] `ExamAttempt` là Event-Sourced Aggregate với các event start/answer/change/flag/unflag/submit/score/question-score.
 - [x] Snapshot dùng cho command-side: loader đọc `ExamAttemptSnapshot` rồi chỉ fetch delta events; snapshot mới nhất của smoke test ở stream version 63, có 30 question IDs và 30 answers.
 - [x] Inline read models `ExamAttemptView` và `ExamAttemptSnapshot` được lưu cùng transaction command.
