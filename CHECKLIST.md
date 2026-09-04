@@ -31,7 +31,7 @@ Ngày kiểm tra: 2026-09-04
 ## Git / PR state
 
 - [x] `main` và `develop` đã được tạo, remote HTTPS đã push baseline commit `309f82b`.
-- [x] Implementation nằm trên branch `module/be-foundation`; commit mới nhất là `340cccf` và working tree sạch.
+- [x] Implementation nằm trên branch `module/be-foundation`; commit implementation là `340cccf`, commit checklist mới nhất là `ad09c01`, và working tree sạch.
 - [ ] Push branch/Draft PR còn chờ quyền GitHub: HTTPS OAuth token thiếu scope `workflow`; SSH key hiện authenticate thành user `NukeLitee` và không có quyền repo `NukeGeng/VietAIS-GPLX`.
 
 ## Known verification limits
