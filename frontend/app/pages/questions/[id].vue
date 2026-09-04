@@ -29,6 +29,7 @@ useGplxSeo("/questions/" + route.params.id, {
   name: currentQuestion.value?.text ?? "Câu hỏi GPLX",
   text: currentQuestion.value?.text ?? "Câu hỏi lý thuyết GPLX",
   learningResourceType: "Question",
+  dateModified: currentQuestion.value?.source?.retrievedAt,
 });
 </script>
 
@@ -63,6 +64,9 @@ useGplxSeo("/questions/" + route.params.id, {
         <span>Nguồn: {{ currentQuestion.source?.title }}</span>
         <span v-if="currentQuestion.source?.effectiveFrom"
           >Hiệu lực từ {{ currentQuestion.source.effectiveFrom }}</span
+        >
+        <span v-if="currentQuestion.source?.retrievedAt"
+          >Cập nhật nguồn {{ currentQuestion.source.retrievedAt }}</span
         >
         <a
           v-if="currentQuestion.source?.url"

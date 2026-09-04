@@ -10,6 +10,8 @@
       </NuxtLink>
       <nav class="site-nav" aria-label="Điều hướng chính">
         <NuxtLink to="/questions">Ngân hàng câu hỏi</NuxtLink>
+        <NuxtLink to="/practice">Luyện tập</NuxtLink>
+        <NuxtLink to="/regulations">Quy định</NuxtLink>
         <NuxtLink to="/licenses/b">Hạng B</NuxtLink>
         <NuxtLink to="/admin/login" class="nav-admin">Admin</NuxtLink>
       </nav>

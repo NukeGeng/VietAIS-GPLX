@@ -30,6 +30,8 @@ export default defineEventHandler(async (event) => {
   const paths = [
     "/",
     "/questions",
+    "/practice",
+    "/regulations",
     ...licenses.map((license) => "/licenses/" + license.slug),
     ...questions.map((question) => "/questions/" + question.id),
   ];

@@ -12,6 +12,7 @@ useGplxSeo("/questions", {
 });
 const { request } = useGplxApi();
 const search = ref("");
+const criticalOnly = ref(false);
 const page = ref(1);
 const pageSize = 50;
 const { data: response } = await useAsyncData(
@@ -22,6 +23,7 @@ const { data: response } = await useAsyncData(
       pageSize: String(pageSize),
     });
     if (search.value.trim()) query.set("search", search.value.trim());
+    if (criticalOnly.value) query.set("critical", "true");
     return request<{
       items: typeof demoQuestions;
       page: number;
@@ -36,7 +38,7 @@ const { data: response } = await useAsyncData(
       pageSize: demoQuestions.length,
       total: demoQuestions.length,
     }),
-    watch: [page, search],
+    watch: [page, search, criticalOnly],
   },
 );
 const questions = computed(() => response.value?.items ?? demoQuestions);
@@ -67,6 +69,10 @@ watch(search, () => {
         placeholder="Tìm kiếm câu hỏi…"
         aria-label="Tìm kiếm câu hỏi"
     /></label>
+    <label class="checkbox-field">
+      <input v-model="criticalOnly" type="checkbox" />
+      <span>Chỉ xem câu điểm liệt</span>
+    </label>
     <div class="question-list">
       <NuxtLink
         v-for="(question, index) in questions"
