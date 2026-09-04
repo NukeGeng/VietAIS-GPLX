@@ -1,12 +1,9 @@
-using JasperFx.Events.Daemon;
-using JasperFx.Events.Projections;
-using Marten;
-using Marten.Services;
-using Marten.Subscriptions;
+using Gplx.Modules.Exams;
+using Marten.Events.Projections;
 
 namespace Gplx.Modules.Learning;
 
-public sealed class QuestionPerformanceDocument
+public sealed class QuestionPerformanceReadModel
 {
     public Guid Id { get; set; }
     public string LicenseClassSlug { get; set; } = string.Empty;
@@ -17,42 +14,30 @@ public sealed class QuestionPerformanceDocument
     public DateTimeOffset LastScoredAt { get; set; }
 }
 
-public sealed class QuestionPerformanceSubscription : SubscriptionBase
+public sealed class QuestionPerformanceProjection : MultiStreamProjection<QuestionPerformanceReadModel, Guid>
 {
-    public override async Task<IChangeListener> ProcessEventsAsync(
-        EventRange page,
-        ISubscriptionController controller,
-        IDocumentOperations operations,
-        CancellationToken cancellationToken)
+    public QuestionPerformanceProjection()
     {
-        foreach (var item in page.Events)
-        {
-            if (item.Data is not Gplx.Modules.Exams.QuestionScored scored)
-            {
-                continue;
-            }
-
-            var performance = await operations.LoadAsync<QuestionPerformanceDocument>(scored.QuestionId, cancellationToken)
-                ?? new QuestionPerformanceDocument
-                {
-                    Id = scored.QuestionId,
-                    LicenseClassSlug = scored.LicenseClassSlug
-                };
-            performance.Attempts++;
-            if (scored.Correct) performance.CorrectAnswers++;
-            else performance.IncorrectAnswers++;
-            if (scored.CriticalMistake) performance.CriticalMistakes++;
-            performance.LastScoredAt = scored.ScoredAt;
-            operations.Store(performance);
-        }
-
-        return new NoopChangeListener();
+        Identity<QuestionScored>(scored => scored.QuestionId);
     }
 
-    private sealed class NoopChangeListener : IChangeListener
+    public QuestionPerformanceReadModel Create(QuestionScored scored) => new()
     {
-        public Task BeforeCommitAsync(IDocumentSession session, IChangeSet commit, CancellationToken token) => Task.CompletedTask;
+        Id = scored.QuestionId,
+        LicenseClassSlug = scored.LicenseClassSlug,
+        Attempts = 1,
+        CorrectAnswers = scored.Correct ? 1 : 0,
+        IncorrectAnswers = scored.Correct ? 0 : 1,
+        CriticalMistakes = scored.CriticalMistake ? 1 : 0,
+        LastScoredAt = scored.ScoredAt
+    };
 
-        public Task AfterCommitAsync(IDocumentSession session, IChangeSet commit, CancellationToken token) => Task.CompletedTask;
+    public void Apply(QuestionScored scored, QuestionPerformanceReadModel current)
+    {
+        current.Attempts++;
+        if (scored.Correct) current.CorrectAnswers++;
+        else current.IncorrectAnswers++;
+        if (scored.CriticalMistake) current.CriticalMistakes++;
+        if (scored.ScoredAt > current.LastScoredAt) current.LastScoredAt = scored.ScoredAt;
     }
 }

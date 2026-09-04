@@ -6,6 +6,7 @@ using Gplx.Modules.QuestionBank;
 using JasperFx;
 using JasperFx.CodeGeneration.Model;
 using JasperFx.Events.Daemon;
+using JasperFx.Events.Projections;
 using Marten;
 using Wolverine;
 using Wolverine.Marten;
@@ -36,11 +37,11 @@ var marten = builder.Services.AddMarten(options =>
     options.Schema.For<ExamBlueprintVersionDocument>();
     options.Schema.For<ExamAttemptSnapshot>();
     options.Schema.For<ExamAttemptView>();
-    options.Schema.For<QuestionPerformanceDocument>();
+    options.Schema.For<QuestionPerformanceReadModel>();
 });
 marten.IntegrateWithWolverine();
 marten.AddAsyncDaemon(DaemonMode.HotCold);
-marten.AddSubscriptionWithServices<QuestionPerformanceSubscription>(ServiceLifetime.Singleton);
+marten.AddProjectionWithServices<QuestionPerformanceProjection>(ProjectionLifecycle.Async, ServiceLifetime.Singleton);
 builder.Host.UseWolverine(options =>
 {
     options.ServiceLocationPolicy = ServiceLocationPolicy.AllowedButWarn;

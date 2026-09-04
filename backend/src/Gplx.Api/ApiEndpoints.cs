@@ -146,7 +146,7 @@ public static class ApiEndpoints
 
         admin.MapGet("/analytics/question-performance", async (IQuerySession query, int? limit, CancellationToken cancellationToken) =>
         {
-            var performance = await query.Query<QuestionPerformanceDocument>().ToListAsync(cancellationToken);
+            var performance = await query.Query<QuestionPerformanceReadModel>().ToListAsync(cancellationToken);
             var questions = await query.Query<QuestionDocument>().ToListAsync(cancellationToken);
             var questionById = questions.ToDictionary(item => item.Id);
             var items = performance
@@ -182,7 +182,9 @@ public static class ApiEndpoints
         }).RequireAuthorization(PermissionNames.ProjectionRead);
         admin.MapPost("/projection/rebuild/question-performance", async (IProjectionCoordinator coordinator, CancellationToken cancellationToken) =>
         {
-            await coordinator.DaemonForMainDatabase().RebuildProjectionAsync(typeof(QuestionPerformanceSubscription), cancellationToken);
+            var daemon = coordinator.DaemonForMainDatabase();
+            await daemon.RebuildProjectionAsync(typeof(QuestionPerformanceProjection), cancellationToken);
+            await daemon.StartAllAsync();
             return Results.Accepted();
         }).RequireAuthorization(PermissionNames.ProjectionRebuild);
     }
