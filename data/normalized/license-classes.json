@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "bundleVersion": "csgt-2025-1",
+  "status": "published",
+  "licenseClasses": [
+    {
+      "slug": "b",
+      "code": "B",
+      "name": "Hạng B",
+      "description": "Ô tô chở người đến 08 chỗ; ô tô tải và ô tô chuyên dùng có khối lượng toàn bộ theo thiết kế đến 3.500 kg; và các loại xe thuộc phạm vi hạng B kéo rơ moóc đến 750 kg.",
+      "source": {
+        "title": "Báo Điện tử Chính phủ — Hướng dẫn sử dụng bộ 600 câu hỏi",
+        "url": "https://xaydungchinhsach.chinhphu.vn/huong-dan-su-dung-bo-600-cau-hoi-dung-de-sat-hach-lai-xe-co-gioi-duong-bo-119250513110514585.htm",
+        "retrievedAt": "2026-09-04",
+        "effectiveFrom": "2025-06-01"
+      }
+    },
+    {
+      "slug": "c1",
+      "code": "C1",
+      "name": "Hạng C1",
+      "description": "Ô tô tải và ô tô chuyên dùng có khối lượng toàn bộ theo thiết kế trên 3.500 kg đến 7.500 kg; xe hạng C1 kéo rơ moóc đến 750 kg; và các loại xe thuộc phạm vi hạng B.",
+      "source": {
+        "title": "Báo Điện tử Chính phủ — Hướng dẫn sử dụng bộ 600 câu hỏi",
+        "url": "https://xaydungchinhsach.chinhphu.vn/huong-dan-su-dung-bo-600-cau-hoi-dung-de-sat-hach-lai-xe-co-gioi-duong-bo-119250513110514585.htm",
+        "retrievedAt": "2026-09-04",
+        "effectiveFrom": "2025-06-01"
+      }
+    }
+  ]
+}

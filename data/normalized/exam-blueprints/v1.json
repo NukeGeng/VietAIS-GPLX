@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0",
+  "version": "csgt-2025-blueprint-1",
+  "status": "published",
+  "effectiveFrom": "2025-06-01",
+  "blueprints": [
+    {
+      "licenseClassSlug": "b",
+      "questionBankVersion": "csgt-2025-question-bank-1",
+      "questionCount": 30,
+      "durationSeconds": 1200,
+      "passingScore": 27,
+      "maxCriticalMistakes": 0,
+      "criticalQuestionCount": 1,
+      "topicQuestionCounts": {
+        "Quy định chung và quy tắc giao thông đường bộ": 8,
+        "Văn hóa giao thông, đạo đức người lái xe, kỹ năng phòng cháy, chữa cháy và cứu hộ, cứu nạn": 1,
+        "Kỹ thuật lái xe": 1,
+        "Cấu tạo và sửa chữa": 1,
+        "Báo hiệu đường bộ": 9,
+        "Giải thế sa hình và kỹ năng xử lý tình huống giao thông": 9
+      }
+    },
+    {
+      "licenseClassSlug": "c1",
+      "questionBankVersion": "csgt-2025-question-bank-1",
+      "questionCount": 35,
+      "durationSeconds": 1320,
+      "passingScore": 32,
+      "maxCriticalMistakes": 0,
+      "criticalQuestionCount": 1,
+      "topicQuestionCounts": {
+        "Quy định chung và quy tắc giao thông đường bộ": 10,
+        "Văn hóa giao thông, đạo đức người lái xe, kỹ năng phòng cháy, chữa cháy và cứu hộ, cứu nạn": 1,
+        "Kỹ thuật lái xe": 2,
+        "Cấu tạo và sửa chữa": 1,
+        "Báo hiệu đường bộ": 10,
+        "Giải thế sa hình và kỹ năng xử lý tình huống giao thông": 10
+      }
+    }
+  ],
+  "source": {
+    "title": "Cục Cảnh sát giao thông — Công văn 2262/CSGT-P5 ngày 07/05/2025",
+    "url": "https://xaydungchinhsach.chinhphu.vn/huong-dan-su-dung-bo-600-cau-hoi-dung-de-sat-hach-lai-xe-co-gioi-duong-bo-119250513110514585.htm",
+    "retrievedAt": "2026-09-04",
+    "effectiveFrom": "2025-06-01"
+  }
+}
