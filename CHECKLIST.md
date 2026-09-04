@@ -27,7 +27,7 @@ Ngày kiểm tra: 2026-09-04
 - [x] GPLX reuse visual language: compact Inter/system typography, coral accent, card/button/input states, spacing và responsive grid.
 - [x] Không sửa hoặc commit source reference; không copy Smart Gas business logic/API.
 - [x] Route-level SSR smoke test pass trên desktop-oriented HTML responses; mobile/tablet CSS breakpoints đã có trong stylesheet.
-- [ ] Browser screenshot/manual interaction QA chưa chạy được trong môi trường hiện tại vì in-app browser không khả dụng. Cần chạy lại trước khi chuyển Draft PR sang Ready.
+- [x] Browser screenshot/manual interaction QA pass trên desktop 1440×900, tablet 768×1024 và mobile 390×844: homepage responsive; question search/filter/detail và empty state; practice answer/pagination/license/topic/critical filters; exam timer/answer/flag/back/submit/result; regulations, license B/C1, invalid license 404; admin login error và protected portal state.
 
 ## Git / PR state
 
@@ -37,4 +37,4 @@ Ngày kiểm tra: 2026-09-04
 
 ## Known verification limits
 
-- Browser visual QA vẫn chưa chạy được vì in-app browser không khả dụng; PR tiếp tục giữ Draft cho đến khi có runtime này.
+- Chưa triển khai production TLS hoặc secret thật; local production-like Compose vẫn yêu cầu cấu hình `GPLX_*` khi deploy.

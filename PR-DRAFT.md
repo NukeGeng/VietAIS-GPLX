@@ -50,6 +50,7 @@ Inline `ExamAttemptView`/`ExamAttemptSnapshot` provide immediate command feedbac
 - Exam UI derives its countdown from the pinned `ExpiresAt`; no timer ticks are persisted as events.
 - Analytics smoke: projection rebuild returns `202`, preserves the aggregate total, restarts the daemon shard, and a post-rebuild 30-question exam increments analytics exactly once.
 - SSR smoke: `/`, `/questions`, `/practice`, `/regulations`, `/licenses/b`, `/admin/login`, `/admin`, `/sitemap.xml`; invalid license returns 404
+- Browser QA: desktop 1440×900, tablet 768×1024, and mobile 390×844 screenshots/interactions pass for public routes, search/filter/empty states, question detail, practice answer/pagination/filter controls, B exam timer/answer/flag/back/submit/result flow, B/C1 license pages, invalid-license 404, and admin login/protected portal states.
 
 ## Frontend Reference
 
@@ -61,6 +62,5 @@ RabbitMQ/Kafka, microservices, Redis, Kubernetes, mobile app, social/account sys
 
 ## Risks / Follow-up
 
-- Run browser-based desktop/tablet/mobile visual QA before marking the PR Ready.
 - Configure a production TLS certificate and real `GPLX_*` secrets at deployment time; local Compose intentionally requires these values.
-- Draft PR #1 is open from `module/be-foundation` into `develop`; keep it Draft until browser-based desktop/tablet/mobile visual QA is available.
+- Draft PR #1 is open from `module/be-foundation` into `develop`; all local verification gates, including browser QA, are now complete and it is ready for final PR review.
