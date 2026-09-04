@@ -62,4 +62,4 @@ RabbitMQ/Kafka, microservices, Redis, Kubernetes, mobile app, social/account sys
 
 - Run browser-based desktop/tablet/mobile visual QA before marking the PR Ready.
 - Configure a production TLS certificate and real `GPLX_*` secrets at deployment time; local Compose intentionally requires these values.
-- Push branch and open the Draft PR after GitHub credentials are corrected. Current HTTPS token lacks `workflow` scope and current SSH identity lacks repository write permission.
+- Draft PR #1 is open from `module/be-foundation` into `develop`; keep it Draft until browser-based desktop/tablet/mobile visual QA is available.
