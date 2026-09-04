@@ -105,6 +105,21 @@ public static class QuestionBankQueries
         return published ? ToResponse(document) : null;
     }
 
+    public static async Task<QuestionResponse?> GetExamQuestion(
+        IQuerySession query,
+        Guid questionBankVersionId,
+        Guid questionId,
+        CancellationToken cancellationToken)
+    {
+        var version = await query.LoadAsync<QuestionBankVersionDocument>(questionBankVersionId, cancellationToken);
+        if (version is null) return null;
+
+        var document = await query.Query<QuestionDocument>()
+            .Where(item => item.Id == questionId && item.QuestionBankVersion == version.Version)
+            .SingleOrDefaultAsync(cancellationToken);
+        return document is null ? null : ToResponse(document);
+    }
+
     public static async Task<PracticeQuestionSearchResponse> SearchPracticeQuestions(
         IQuerySession query,
         string? licenseClassSlug,

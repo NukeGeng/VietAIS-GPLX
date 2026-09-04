@@ -14,7 +14,7 @@ const { data: questionData } = await useAsyncData(
   async () => {
     if (!attempt.value?.questionIds?.length) return [];
     return Promise.all(
-      questionIds.value.map((id) => request<any>(`/questions/${id}`)),
+      questionIds.value.map((id) => request<any>(`/exams/${attemptId}/questions/${id}`)),
     );
   },
   { default: () => [] },

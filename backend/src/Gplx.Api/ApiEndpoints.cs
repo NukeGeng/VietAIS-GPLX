@@ -59,6 +59,22 @@ public static class ApiEndpoints
             var view = await query.LoadAsync<ExamAttemptView>(id, cancellationToken);
             return view is null ? Results.NotFound() : Results.Ok(view);
         });
+        api.MapGet("/exams/{id:guid}/questions/{questionId:guid}", async (
+            Guid id,
+            Guid questionId,
+            IQuerySession query,
+            CancellationToken cancellationToken) =>
+        {
+            var attempt = await query.LoadAsync<ExamAttemptView>(id, cancellationToken);
+            if (attempt is null || !attempt.QuestionIds.Contains(questionId)) return Results.NotFound();
+
+            var question = await QuestionBankQueries.GetExamQuestion(
+                query,
+                attempt.QuestionBankVersionId,
+                questionId,
+                cancellationToken);
+            return question is null ? Results.NotFound() : Results.Ok(question);
+        });
         api.MapPost("/exams/{id:guid}/answers", async (Guid id, AnswerRequest request, IMessageBus bus, CancellationToken cancellationToken) =>
             Results.Ok(await bus.InvokeAsync<AnswerQuestionResult>(new AnswerQuestionCommand(id, request.QuestionId, request.OptionId), cancellationToken)));
         api.MapPost("/exams/{id:guid}/flags", async (Guid id, FlagRequest request, IMessageBus bus, CancellationToken cancellationToken) =>
