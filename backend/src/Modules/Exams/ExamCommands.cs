@@ -112,7 +112,7 @@ public sealed class ExamCommandHandlers
             return new AnswerQuestionResult(ToView(attempt), false);
         }
 
-        session.Events.Append(command.AttemptId, loaded.Version, @event);
+        await session.Events.AppendOptimistic(command.AttemptId, @event);
         attempt.Apply(@event);
         StoreInlineReadModels(session, attempt, version: loaded.Version + 1);
         await session.SaveChangesAsync(cancellationToken);
@@ -130,7 +130,7 @@ public sealed class ExamCommandHandlers
             ? attempt.FlagQuestion(command.QuestionId, DateTimeOffset.UtcNow)
             : attempt.UnflagQuestion(command.QuestionId, DateTimeOffset.UtcNow);
 
-        session.Events.Append(command.AttemptId, loaded.Version, @event);
+        await session.Events.AppendOptimistic(command.AttemptId, @event);
         attempt.Apply(@event);
         StoreInlineReadModels(session, attempt, version: loaded.Version + 1);
         await session.SaveChangesAsync(cancellationToken);
@@ -180,21 +180,34 @@ public sealed class ExamCommandHandlers
                 question.IsCritical && !correct,
                 scored.ScoredAt));
         }
-        // Marten's expected version for a multi-event append is the stream version
-        // after the pending events have been applied.
-        var expectedVersion = loaded.Version + events.Count - 1;
-        session.Events.Append(command.AttemptId, expectedVersion, events.ToArray());
-        StoreInlineReadModels(session, attempt, version: expectedVersion);
+        await session.Events.AppendOptimistic(command.AttemptId, events.ToArray());
+        StoreInlineReadModels(session, attempt, version: loaded.Version + events.Count);
         await session.SaveChangesAsync(cancellationToken);
         return new SubmitExamResult(ToView(attempt));
     }
 
     private static async Task<(ExamAttempt Attempt, long Version)> LoadAttemptForWriting(IDocumentSession session, Guid attemptId, CancellationToken cancellationToken)
     {
+        var snapshot = await session.LoadAsync<ExamAttemptSnapshot>(attemptId, cancellationToken);
+        if (snapshot is not null && snapshot.Version > 0 && snapshot.QuestionIds.Count > 0)
+        {
+            var changes = await session.Events.FetchStreamAsync(
+                attemptId,
+                fromVersion: snapshot.Version + 1,
+                token: cancellationToken);
+            var attempt = ExamAttempt.FromSnapshot(snapshot);
+            foreach (var change in changes)
+            {
+                attempt.Apply(change.Data);
+            }
+
+            return (attempt, snapshot.Version + changes.Count);
+        }
+
         var events = await session.Events.FetchStreamAsync(attemptId, token: cancellationToken);
         return events.Count == 0
             ? throw new DomainRuleViolationException("Exam attempt was not found.")
-            : (ExamAttempt.Rehydrate(events.Select(item => item.Data)), events[^1].Version + 1);
+            : (ExamAttempt.Rehydrate(events.Select(item => item.Data)), events[^1].Version);
     }
 
     private static void StoreInlineReadModels(IDocumentSession session, ExamAttempt attempt, long version)
@@ -214,8 +227,13 @@ public sealed class ExamCommandHandlers
             AnsweredCount = attempt.Answers.Count,
             FlaggedCount = attempt.FlaggedQuestionIds.Count,
             Score = attempt.Score,
+            CorrectCount = attempt.CorrectCount,
+            CriticalMistakes = attempt.CriticalMistakes,
             Passed = attempt.Passed,
-            Version = version
+            Version = version,
+            QuestionIds = attempt.QuestionIds,
+            Answers = new Dictionary<Guid, string>(attempt.Answers),
+            FlaggedQuestionIds = new HashSet<Guid>(attempt.FlaggedQuestionIds)
         });
     }
 

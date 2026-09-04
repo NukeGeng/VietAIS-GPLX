@@ -1,4 +1,5 @@
 using Gplx.BuildingBlocks;
+using Gplx.Modules.QuestionBank;
 
 namespace Gplx.Modules.Exams;
 
@@ -36,6 +37,36 @@ public sealed class ExamAttempt
         foreach (var @event in events)
         {
             attempt.Apply(@event);
+        }
+
+        return attempt;
+    }
+
+    public static ExamAttempt FromSnapshot(ExamAttemptSnapshot snapshot)
+    {
+        var attempt = new ExamAttempt
+        {
+            Id = snapshot.Id,
+            LicenseClassSlug = snapshot.LicenseClassSlug,
+            QuestionBankVersionId = snapshot.QuestionBankVersionId,
+            ExamBlueprintVersionId = snapshot.ExamBlueprintVersionId,
+            RegulationVersionId = snapshot.RegulationVersionId,
+            StartedAt = snapshot.StartedAt,
+            ExpiresAt = snapshot.ExpiresAt,
+            Status = Enum.Parse<ExamAttemptStatus>(snapshot.Status, ignoreCase: false),
+            QuestionIds = snapshot.QuestionIds,
+            Score = snapshot.Score,
+            Passed = snapshot.Passed,
+            CorrectCount = snapshot.CorrectCount,
+            CriticalMistakes = snapshot.CriticalMistakes
+        };
+        foreach (var answer in snapshot.Answers)
+        {
+            attempt._answers[answer.Key] = answer.Value;
+        }
+        foreach (var questionId in snapshot.FlaggedQuestionIds)
+        {
+            attempt._flaggedQuestionIds.Add(questionId);
         }
 
         return attempt;

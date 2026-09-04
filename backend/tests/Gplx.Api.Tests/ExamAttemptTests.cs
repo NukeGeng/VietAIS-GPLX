@@ -1,5 +1,6 @@
 using Gplx.BuildingBlocks;
 using Gplx.Modules.Exams;
+using Gplx.Modules.QuestionBank;
 using Xunit;
 
 namespace Gplx.Api.Tests;
@@ -66,5 +67,36 @@ public sealed class ExamAttemptTests
         attempt.Apply(unflagged);
 
         Assert.Empty(attempt.FlaggedQuestionIds);
+    }
+
+    [Fact]
+    public void Snapshot_round_trip_preserves_command_state()
+    {
+        var startedAt = DateTimeOffset.UtcNow;
+        var attemptId = Guid.NewGuid();
+        var attempt = ExamAttempt.Rehydrate([new ExamStarted(
+            attemptId, "b", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), startedAt, startedAt.AddMinutes(10), [QuestionOne])]);
+        attempt.Apply(new QuestionAnswered(QuestionOne, "b", startedAt.AddSeconds(1)));
+        var snapshot = new ExamAttemptSnapshot
+        {
+            Id = attempt.Id,
+            LicenseClassSlug = attempt.LicenseClassSlug,
+            QuestionBankVersionId = attempt.QuestionBankVersionId,
+            ExamBlueprintVersionId = attempt.ExamBlueprintVersionId,
+            RegulationVersionId = attempt.RegulationVersionId,
+            StartedAt = attempt.StartedAt,
+            ExpiresAt = attempt.ExpiresAt,
+            Status = attempt.Status.ToString(),
+            Version = 2,
+            QuestionIds = attempt.QuestionIds,
+            Answers = new Dictionary<Guid, string>(attempt.Answers),
+            FlaggedQuestionIds = new HashSet<Guid>(attempt.FlaggedQuestionIds)
+        };
+
+        var restored = ExamAttempt.FromSnapshot(snapshot);
+
+        Assert.Equal(attempt.Id, restored.Id);
+        Assert.Equal("b", restored.Answers[QuestionOne]);
+        Assert.Contains(QuestionOne, restored.QuestionIds);
     }
 }

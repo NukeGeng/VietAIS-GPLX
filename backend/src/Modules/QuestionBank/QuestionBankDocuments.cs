@@ -101,8 +101,13 @@ public sealed class ExamAttemptSnapshot
     public int AnsweredCount { get; set; }
     public int FlaggedCount { get; set; }
     public int? Score { get; set; }
+    public int? CorrectCount { get; set; }
+    public int? CriticalMistakes { get; set; }
     public bool? Passed { get; set; }
     public long Version { get; set; }
+    public IReadOnlyList<Guid> QuestionIds { get; set; } = [];
+    public IReadOnlyDictionary<Guid, string> Answers { get; set; } = new Dictionary<Guid, string>();
+    public IReadOnlyCollection<Guid> FlaggedQuestionIds { get; set; } = [];
 }
 
 public sealed class ExamAttemptView

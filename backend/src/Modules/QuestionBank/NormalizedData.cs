@@ -25,6 +25,14 @@ public sealed class NormalizedDataSeeder(IConfiguration configuration, IHostEnvi
             return;
         }
 
+        // Seeding is a bootstrap operation, not a reconciliation job. Once the
+        // canonical bundle exists, preserve question-bank versions created by
+        // Admin and let explicit import/version workflows change the data.
+        if (await session.LoadAsync<QuestionBankVersionDocument>(QuestionBankId, cancellationToken) is not null)
+        {
+            return;
+        }
+
         var root = ResolveDataRoot();
         var classes = await ReadAsync<NormalizedLicenseClasses>(Path.Combine(root, "license-classes.json"), cancellationToken);
         var regulation = await ReadAsync<NormalizedRegulation>(Path.Combine(root, "regulations/v1.json"), cancellationToken);
@@ -53,13 +61,6 @@ public sealed class NormalizedDataSeeder(IConfiguration configuration, IHostEnvi
             LicenseClassSlugs = bank.LicenseClassSlugs,
             Source = bank.Source
         });
-
-        var validQuestionIds = bank.Questions.Select(item => Guid.Parse(item.Id)).ToHashSet();
-        var existingQuestions = await session.Query<QuestionDocument>().ToListAsync(cancellationToken);
-        foreach (var staleQuestion in existingQuestions.Where(item => !validQuestionIds.Contains(item.Id)))
-        {
-            session.Delete(staleQuestion);
-        }
 
         foreach (var question in bank.Questions)
         {
