@@ -10,7 +10,7 @@ Ngày kiểm tra: 2026-09-04
 - [x] `ExamAttempt` là Event-Sourced Aggregate với các event start/answer/change/flag/unflag/submit/score/question-score.
 - [x] Snapshot dùng cho command-side: loader đọc `ExamAttemptSnapshot` rồi chỉ fetch delta events; snapshot mới nhất của smoke test ở stream version 63, có 30 question IDs và 30 answers.
 - [x] Inline read models `ExamAttemptView` và `ExamAttemptSnapshot` được lưu cùng transaction command.
-- [x] Async `QuestionPerformanceProjection` chạy qua Marten Async Daemon; projection status runtime `running=true`, `stale=false`, và có endpoint rebuild projection.
+- [x] Async `QuestionPerformanceProjection` chạy qua Marten Async Daemon; projection status runtime `running=true`, `stale=false`, endpoint rebuild trả `202`, rebuild không đổi tổng analytics `485`, và bài thi sau rebuild tăng đúng `+30` lượt chấm.
 - [x] Wolverine xử lý command và transaction với Marten; không thêm external broker.
 - [x] Admin quản lý version: import/validate/preview/publish/deprecate Question Bank, sửa question draft, quản lý License Class, lưu/publish Regulation và Exam Blueprint.
 - [x] Authorization dùng permission policies; admin token smoke test có 13 permissions, endpoint protected không token trả `401`.
