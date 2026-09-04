@@ -1,21 +1,40 @@
 <script setup lang="ts">
-import { demoQuestions } from "~/data/demo";
-
 const route = useRoute();
 const { request } = useGplxApi();
-const { data: question } = await useAsyncData(
+type PublicQuestion = {
+  id: string;
+  topic: string;
+  text: string;
+  licenseClassSlug: string;
+  options: Array<{ id: string; text: string }>;
+  explanation: string;
+  memoryTip: string | null;
+  source?: {
+    title: string;
+    url: string;
+    effectiveFrom?: string;
+    retrievedAt?: string;
+  };
+};
+const { data: question, error: questionError } = await useAsyncData(
   `question-${route.params.id}`,
   () =>
-    request<(typeof demoQuestions)[number]>(`/questions/${route.params.id}`),
+    request<PublicQuestion>(`/questions/${route.params.id}`),
   {
-    default: () =>
-      demoQuestions.find((item) => item.id === route.params.id) ?? null,
+    default: () => null,
   },
 );
-const currentQuestion = computed(
-  () =>
-    question.value ?? demoQuestions.find((item) => item.id === route.params.id),
-);
+if (questionError.value) {
+  const error = questionError.value as any;
+  throw createError({
+    statusCode: error.statusCode ?? 502,
+    statusMessage: error.statusMessage ?? "Question API unavailable",
+  });
+}
+if (!question.value) {
+  throw createError({ statusCode: 404, statusMessage: "Question not found" });
+}
+const currentQuestion = computed(() => question.value);
 useSeoMeta({
   title: () =>
     currentQuestion.value

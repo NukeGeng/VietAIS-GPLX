@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { demoLicenses } from "~/data/demo";
-
 const route = useRoute();
 const { request } = useGplxApi();
-const { data: licenseData } = await useAsyncData(
+type LicenseClass = {
+  slug: string;
+  code: string;
+  name: string;
+  description: string;
+  source?: {
+    title: string;
+    url: string;
+    effectiveFrom?: string;
+    retrievedAt?: string;
+  };
+};
+const { data: licenseData, error: licenseError } = await useAsyncData(
   "license-" + route.params.slug,
-  () => request<any[]>("/licenses"),
+  () => request<LicenseClass[]>("/licenses"),
   { default: () => [] },
 );
 const { data: blueprintData } = await useAsyncData(
@@ -15,10 +25,15 @@ const { data: blueprintData } = await useAsyncData(
 );
 const license = computed(
   () =>
-    licenseData.value?.find((item) => item.slug === route.params.slug) ??
-    demoLicenses.find((item) => item.slug === route.params.slug) ??
-    null,
+    licenseData.value?.find((item) => item.slug === route.params.slug) ?? null,
 );
+if (licenseError.value) {
+  const error = licenseError.value as any;
+  throw createError({
+    statusCode: error.statusCode ?? 502,
+    statusMessage: error.statusMessage ?? "License API unavailable",
+  });
+}
 if (!license.value) {
   throw createError({ statusCode: 404, statusMessage: "License class not found" });
 }

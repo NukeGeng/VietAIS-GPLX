@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { demoQuestions } from "~/data/demo";
-
 const route = useRoute();
 const { request } = useGplxApi();
 const attemptId = String(route.params.id);
@@ -11,19 +9,19 @@ const { data: attemptData, error: attemptError } = await useAsyncData(
 );
 const attempt = computed(() => attemptData.value?.view ?? attemptData.value);
 const questionIds = computed(
-  () => attempt.value?.questionIds ?? demoQuestions.map((item) => item.id),
+  () => attempt.value?.questionIds ?? [],
 );
 const { data: questionData } = await useAsyncData(
   `exam-questions-${attemptId}`,
   async () => {
-    if (!attempt.value?.questionIds?.length) return demoQuestions;
+    if (!attempt.value?.questionIds?.length) return [];
     return Promise.all(
       questionIds.value.map((id) => request<any>(`/questions/${id}`)),
     );
   },
-  { default: () => demoQuestions },
+  { default: () => [] },
 );
-const questions = computed(() => questionData.value ?? demoQuestions);
+const questions = computed(() => questionData.value ?? []);
 const currentIndex = ref(0);
 const saving = ref(false);
 const submitError = ref("");

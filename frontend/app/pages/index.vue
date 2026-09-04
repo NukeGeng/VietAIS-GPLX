@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { demoLicenses } from "~/data/demo";
-
 useSeoMeta({
   title: "VietAIS GPLX — Ôn thi giấy phép lái xe",
   description:
@@ -13,16 +11,20 @@ useGplxSeo("/", {
 });
 
 const { request } = useGplxApi();
-const { data: licenseData } = await useAsyncData(
+type LicenseClass = {
+  slug: string;
+  code: string;
+  name: string;
+  description: string;
+};
+const { data: licenseData, error: licenseError } = await useAsyncData(
   "licenses",
-  () => request<typeof demoLicenses>("/licenses"),
+  () => request<LicenseClass[]>("/licenses"),
   {
-    default: () => demoLicenses,
+    default: () => [],
   },
 );
-const licenses = computed(() =>
-  licenseData.value?.length ? licenseData.value : demoLicenses,
-);
+const licenses = computed(() => licenseData.value ?? []);
 const startingSlug = ref<string | null>(null);
 const startError = ref("");
 
@@ -92,6 +94,14 @@ async function startExam(slug: string) {
       <p v-if="startError" class="inline-error" role="alert">
         {{ startError }}
       </p>
+      <div v-if="licenseError" class="empty-state" role="alert">
+        <strong>Không tải được danh sách hạng bằng</strong
+        ><span>Hãy kiểm tra kết nối máy chủ và thử lại.</span>
+      </div>
+      <div v-else-if="!licenses.length" class="empty-state">
+        <strong>Chưa có hạng bằng khả dụng</strong
+        ><span>Dữ liệu đang được cập nhật.</span>
+      </div>
       <div class="license-grid">
         <article
           v-for="license in licenses"

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { demoQuestions } from "~/data/demo";
-
 useSeoMeta({
   title: "Ngân hàng câu hỏi GPLX — VietAIS",
   description: "Tìm kiếm và ôn luyện câu hỏi lý thuyết GPLX theo chủ đề.",
@@ -11,11 +9,16 @@ useGplxSeo("/questions", {
   description: "Tìm kiếm và ôn luyện câu hỏi lý thuyết GPLX theo chủ đề.",
 });
 const { request } = useGplxApi();
+type QuestionListItem = {
+  id: string;
+  topic: string;
+  text: string;
+};
 const search = ref("");
 const criticalOnly = ref(false);
 const page = ref(1);
 const pageSize = 50;
-const { data: response } = await useAsyncData(
+const { data: response, error: questionsError } = await useAsyncData(
   "questions",
   () => {
     const query = new URLSearchParams({
@@ -25,7 +28,7 @@ const { data: response } = await useAsyncData(
     if (search.value.trim()) query.set("search", search.value.trim());
     if (criticalOnly.value) query.set("critical", "true");
     return request<{
-      items: typeof demoQuestions;
+      items: QuestionListItem[];
       page: number;
       pageSize: number;
       total: number;
@@ -33,15 +36,15 @@ const { data: response } = await useAsyncData(
   },
   {
     default: () => ({
-      items: demoQuestions,
+      items: [],
       page: 1,
-      pageSize: demoQuestions.length,
-      total: demoQuestions.length,
+      pageSize,
+      total: 0,
     }),
     watch: [page, search, criticalOnly],
   },
 );
-const questions = computed(() => response.value?.items ?? demoQuestions);
+const questions = computed(() => response.value?.items ?? []);
 const total = computed(() => response.value?.total ?? questions.value.length);
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(total.value / pageSize)),
@@ -73,7 +76,14 @@ watch(search, () => {
       <input v-model="criticalOnly" type="checkbox" />
       <span>Chỉ xem câu điểm liệt</span>
     </label>
-    <div class="question-list">
+    <div v-if="questionsError" class="empty-state" role="alert">
+      <strong>Không tải được ngân hàng câu hỏi</strong
+      ><span>Hãy kiểm tra kết nối máy chủ và thử lại.</span>
+    </div>
+    <div v-else-if="!questions.length" class="empty-state">
+      <strong>Không tìm thấy câu hỏi</strong><span>Thử một từ khóa khác.</span>
+    </div>
+    <div v-else class="question-list">
       <NuxtLink
         v-for="(question, index) in questions"
         :key="question.id"
@@ -87,9 +97,6 @@ watch(search, () => {
         ><span class="question-text">{{ question.text }}</span
         ><span class="row-arrow">→</span>
       </NuxtLink>
-    </div>
-    <div v-if="!questions.length" class="empty-state">
-      <strong>Không tìm thấy câu hỏi</strong><span>Thử một từ khóa khác.</span>
     </div>
     <div v-if="totalPages > 1" class="pagination" aria-label="Phân trang">
       <button class="button button-quiet" :disabled="page === 1" @click="page--">
