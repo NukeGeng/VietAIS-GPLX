@@ -1,6 +1,8 @@
 using Gplx.BuildingBlocks;
 using Marten;
 using Wolverine.Attributes;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Gplx.Modules.QuestionBank;
 
@@ -28,6 +30,16 @@ public sealed record ImportQuestionBankResult(
     string Version,
     string Status,
     int QuestionCount);
+
+public sealed record EditQuestionCommand(Guid QuestionBankVersionId, Guid QuestionId, AdminQuestionInput Question);
+public sealed record SaveLicenseClassCommand(
+    Guid? Id,
+    string Slug,
+    string Code,
+    string Name,
+    string Description,
+    SourceProvenance Source);
+public sealed record SaveLicenseClassResult(LicenseClassDocument LicenseClass);
 
 public sealed record PublishQuestionBankVersionCommand(Guid Id);
 public sealed record DeprecateQuestionBankVersionCommand(Guid Id);
@@ -97,6 +109,94 @@ public sealed class AdminVersionCommandHandlers
 
         await session.SaveChangesAsync(cancellationToken);
         return new ImportQuestionBankResult(version.Id, version.Version, version.Status, command.Questions.Count);
+    }
+
+    public static async Task<QuestionDocument> Handle(
+        EditQuestionCommand command,
+        IDocumentSession session,
+        IQuerySession query,
+        CancellationToken cancellationToken)
+    {
+        var version = await query.LoadAsync<QuestionBankVersionDocument>(command.QuestionBankVersionId, cancellationToken)
+            ?? throw new DomainRuleViolationException("Question bank version was not found.");
+        if (version.Status == "Published")
+        {
+            throw new DomainRuleViolationException("Published question banks are immutable; import a new version.");
+        }
+        if (command.Question.Id != command.QuestionId)
+        {
+            throw new DomainRuleViolationException("Question id does not match the route.");
+        }
+
+        var errors = ValidateQuestionInputs(
+            new ImportQuestionBankCommand(version.Version, version.EffectiveFrom, version.LicenseClassSlugs, [command.Question], version.Source),
+            version.LicenseClassSlugs);
+        if (errors.Count > 0) throw new DomainRuleViolationException(string.Join(" ", errors));
+
+        var duplicateSlug = await query.Query<QuestionDocument>()
+            .Where(item => item.QuestionBankVersion == version.Version && item.Id != command.QuestionId && item.Slug == command.Question.Slug.Trim())
+            .AnyAsync(cancellationToken);
+        if (duplicateSlug) throw new DomainRuleViolationException("Question slug must be unique within the version.");
+
+        var question = await query.Query<QuestionDocument>()
+            .Where(item => item.QuestionBankVersion == version.Version && item.Id == command.QuestionId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new DomainRuleViolationException("Question was not found in the selected version.");
+
+        question.Slug = command.Question.Slug.Trim();
+        question.LicenseClassSlug = command.Question.LicenseClassSlugs.FirstOrDefault() ?? version.LicenseClassSlugs[0];
+        question.LicenseClassSlugs = command.Question.LicenseClassSlugs;
+        question.Topic = command.Question.Topic.Trim();
+        question.Text = command.Question.Text.Trim();
+        question.Options = command.Question.Options;
+        question.CorrectOptionId = command.Question.CorrectOptionId.Trim();
+        question.IsCritical = command.Question.IsCritical;
+        question.Explanation = command.Question.Explanation.Trim();
+        question.MemoryTip = string.IsNullOrWhiteSpace(command.Question.MemoryTip) ? null : command.Question.MemoryTip.Trim();
+        session.Store(question);
+        await session.SaveChangesAsync(cancellationToken);
+        return question;
+    }
+
+    public static async Task<SaveLicenseClassResult> Handle(
+        SaveLicenseClassCommand command,
+        IDocumentSession session,
+        IQuerySession query,
+        CancellationToken cancellationToken)
+    {
+        var slug = command.Slug.Trim().ToLowerInvariant();
+        var errors = ValidateSource(command.Source);
+        if (string.IsNullOrWhiteSpace(slug) || string.IsNullOrWhiteSpace(command.Code) || string.IsNullOrWhiteSpace(command.Name))
+        {
+            errors.Add("License class slug, code and name are required.");
+        }
+
+        LicenseClassDocument licenseClass;
+        if (command.Id is null)
+        {
+            var duplicate = await query.Query<LicenseClassDocument>().Where(item => item.Slug == slug).AnyAsync(cancellationToken);
+            if (duplicate) throw new DomainRuleViolationException("A license class with this slug already exists.");
+            licenseClass = new LicenseClassDocument { Id = Guid.NewGuid() };
+        }
+        else
+        {
+            licenseClass = await query.LoadAsync<LicenseClassDocument>(command.Id.Value, cancellationToken)
+                ?? throw new DomainRuleViolationException("License class was not found.");
+            if (!string.Equals(licenseClass.Slug, slug, StringComparison.OrdinalIgnoreCase))
+            {
+                errors.Add("A license class slug cannot be changed after creation.");
+            }
+        }
+
+        if (errors.Count > 0) throw new DomainRuleViolationException(string.Join(" ", errors));
+        licenseClass.Slug = slug;
+        licenseClass.Code = command.Code.Trim();
+        licenseClass.Name = command.Name.Trim();
+        licenseClass.Description = command.Description.Trim();
+        licenseClass.Source = command.Source;
+        session.Store(licenseClass);
+        await session.SaveChangesAsync(cancellationToken);
+        return new SaveLicenseClassResult(licenseClass);
     }
 
     public static async Task<QuestionBankVersionDocument> Handle(
@@ -323,6 +423,7 @@ public sealed class AdminVersionCommandHandlers
         var ids = new HashSet<Guid>();
         foreach (var question in questions)
         {
+            if (question.Id == Guid.Empty) errors.Add("Question id must be a non-empty GUID.");
             if (!ids.Add(question.Id)) errors.Add($"Duplicate question id: {question.Id}.");
             if (string.IsNullOrWhiteSpace(question.Text) || string.IsNullOrWhiteSpace(question.Topic))
             {
@@ -352,6 +453,7 @@ public sealed class AdminVersionCommandHandlers
         var ids = new HashSet<Guid>();
         foreach (var question in command.Questions)
         {
+            if (question.Id == Guid.Empty) errors.Add("Question id must be a non-empty GUID.");
             if (!ids.Add(question.Id)) errors.Add($"Duplicate question id: {question.Id}.");
             if (question.LicenseClassSlugs.Count == 0 || !question.LicenseClassSlugs.All(licenseClassSlugs.Contains))
             {
@@ -436,7 +538,10 @@ public sealed class AdminVersionCommandHandlers
         SourceProvenance bankSource) =>
         new()
         {
-            Id = input.Id,
+            // QuestionDocument ids are global in Marten. Scope imported identities
+            // by bank version so publishing a new bank cannot overwrite questions
+            // referenced by an in-progress attempt on an older bank.
+            Id = VersionedQuestionId(version, input.Id),
             Slug = input.Slug.Trim(),
             LicenseClassSlug = input.LicenseClassSlugs.FirstOrDefault() ?? bankLicenseClassSlugs[0],
             LicenseClassSlugs = input.LicenseClassSlugs,
@@ -450,4 +555,10 @@ public sealed class AdminVersionCommandHandlers
             QuestionBankVersion = version,
             Source = bankSource
         };
+
+    private static Guid VersionedQuestionId(string version, Guid sourceQuestionId)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"question:{version}:{sourceQuestionId:D}"));
+        return new Guid(bytes[..16]);
+    }
 }

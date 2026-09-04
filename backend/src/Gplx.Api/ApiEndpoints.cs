@@ -22,10 +22,30 @@ public static class ApiEndpoints
             string? licenseClassSlug,
             string? topic,
             string? search,
+            bool? critical,
             int? page,
             int? pageSize,
             CancellationToken cancellationToken) =>
-            Results.Ok(await QuestionBankQueries.SearchQuestions(query, licenseClassSlug, topic, search, page ?? 1, pageSize ?? 20, cancellationToken)));
+            Results.Ok(await QuestionBankQueries.SearchQuestions(query, licenseClassSlug, topic, search, critical, page ?? 1, pageSize ?? 20, cancellationToken)));
+        api.MapGet("/topics", QuestionBankQueries.ListTopics);
+        api.MapGet("/practice/questions", async (
+            IQuerySession query,
+            string? licenseClassSlug,
+            string? topic,
+            string? search,
+            bool? critical,
+            int? page,
+            int? pageSize,
+            CancellationToken cancellationToken) =>
+            Results.Ok(await QuestionBankQueries.SearchPracticeQuestions(
+                query, licenseClassSlug, topic, search, critical, page ?? 1, pageSize ?? 20, cancellationToken)));
+        api.MapGet("/practice/questions/{id:guid}", async (Guid id, IQuerySession query, CancellationToken cancellationToken) =>
+        {
+            var question = await QuestionBankQueries.GetPracticeQuestion(query, id, cancellationToken);
+            return question is null ? Results.NotFound() : Results.Ok(question);
+        });
+        api.MapGet("/regulations", QuestionBankQueries.ListPublishedRegulations);
+        api.MapGet("/exam-blueprints", QuestionBankQueries.ListPublishedBlueprints);
         api.MapGet("/questions/{id:guid}", async (Guid id, IQuerySession query, CancellationToken cancellationToken) =>
         {
             var question = await QuestionBankQueries.GetQuestion(query, id, cancellationToken);
@@ -71,6 +91,23 @@ public static class ApiEndpoints
                 validationErrors = AdminVersionCommandHandlers.ValidateQuestionBank(version, questions)
             });
         }).RequireAuthorization(PermissionNames.QuestionBankRead);
+        admin.MapGet("/license-classes", async (IQuerySession query, CancellationToken cancellationToken) =>
+            Results.Ok(await query.Query<LicenseClassDocument>().OrderBy(item => item.Code).ToListAsync(cancellationToken)))
+            .RequireAuthorization(PermissionNames.QuestionBankRead);
+        admin.MapPost("/license-classes", async (SaveLicenseClassRequest request, IMessageBus bus, CancellationToken cancellationToken) =>
+            Results.Ok(await bus.InvokeAsync<SaveLicenseClassResult>(
+                new SaveLicenseClassCommand(request.Id, request.Slug, request.Code, request.Name, request.Description, request.Source),
+                cancellationToken)))
+            .RequireAuthorization(PermissionNames.QuestionBankEdit);
+        admin.MapPut("/question-banks/{versionId:guid}/questions/{questionId:guid}", async (
+            Guid versionId,
+            Guid questionId,
+            AdminQuestionInput question,
+            IMessageBus bus,
+            CancellationToken cancellationToken) =>
+            Results.Ok(await bus.InvokeAsync<QuestionDocument>(
+                new EditQuestionCommand(versionId, questionId, question), cancellationToken)))
+            .RequireAuthorization(PermissionNames.QuestionBankEdit);
         admin.MapPost("/question-banks/import", async (ImportQuestionBankRequest request, IMessageBus bus, CancellationToken cancellationToken) =>
             Results.Ok(await bus.InvokeAsync<ImportQuestionBankResult>(
                 new ImportQuestionBankCommand(request.Version, request.EffectiveFrom, request.LicenseClassSlugs, request.Questions, request.Source),
@@ -158,6 +195,13 @@ public static class ApiEndpoints
         DateOnly EffectiveFrom,
         IReadOnlyList<string> LicenseClassSlugs,
         IReadOnlyList<AdminQuestionInput> Questions,
+        SourceProvenance Source);
+    private sealed record SaveLicenseClassRequest(
+        Guid? Id,
+        string Slug,
+        string Code,
+        string Name,
+        string Description,
         SourceProvenance Source);
     private sealed record SaveRegulationVersionRequest(
         Guid? Id,
