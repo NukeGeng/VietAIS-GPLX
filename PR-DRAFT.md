@@ -30,6 +30,7 @@ Inline `ExamAttemptView`/`ExamAttemptSnapshot` provide immediate command feedbac
 - Only `ExamAttempt` uses Event Sourcing. Question Bank reference data uses current-state Marten documents.
 - `ExamAttemptSnapshot` stores command state and stream version. Commands hydrate snapshot plus delta events; `AppendOptimistic` provides concurrency protection compatible with Marten Quick append mode.
 - Exam start pins Question Bank, Exam Blueprint and Regulation versions. Question distribution comes from the published blueprint, not hard-coded endpoint constants.
+- Public question/practice reads are limited to published Question Bank versions. Imported question identities are scoped by `bank version + source question id`, so a new bank cannot overwrite documents referenced by an in-progress attempt. The normalized seeder is bootstrap-only and preserves Admin-created versions across restart.
 - Exam views are Inline because answer progress and result need immediate consistency. Analytics is Async because it is fan-out/aggregate data and can tolerate eventual consistency.
 - Public reads use documents/read models directly. Question list/practice queries use database-side count and pagination; Nginx caches only public read-heavy GET routes.
 - Admin authorization uses named permission policies and JWT claims; no business logic checks a role string.
