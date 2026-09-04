@@ -819,6 +819,19 @@ h1 em {
   color: var(--text-base-3);
   font-size: 11px;
 }
+.exam-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.exam-timer {
+  color: var(--text-base-2);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.exam-timer.urgent {
+  color: var(--danger);
+}
 .progress-track {
   height: 5px;
   margin-top: 9px;

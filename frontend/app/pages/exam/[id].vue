@@ -39,6 +39,29 @@ const currentQuestionFlagged = computed(
       ? flaggedQuestionIds.value.has(currentQuestion.value.id)
       : false,
 );
+const clockMs = ref<number | null>(null);
+const remainingSeconds = computed(() => {
+  const expiresAt = attempt.value?.expiresAt;
+  if (!expiresAt || clockMs.value === null) return null;
+  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - clockMs.value) / 1000));
+});
+const remainingLabel = computed(() => {
+  if (remainingSeconds.value === null) return "";
+  const minutes = Math.floor(remainingSeconds.value / 60);
+  const seconds = remainingSeconds.value % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+});
+let timer: number | undefined;
+
+onMounted(() => {
+  clockMs.value = Date.now();
+  timer = window.setInterval(() => {
+    clockMs.value = Date.now();
+  }, 1000);
+});
+onBeforeUnmount(() => {
+  if (timer !== undefined) window.clearInterval(timer);
+});
 
 useSeoMeta({ title: "Thi thử GPLX — VietAIS", robots: "noindex,nofollow" });
 
@@ -110,7 +133,16 @@ async function toggleFlag() {
           </h1>
         </div>
         <div class="exam-progress">
-          <span>{{ answeredCount }}/{{ questions.length }} câu đã trả lời</span>
+          <div class="exam-progress-label">
+            <span>{{ answeredCount }}/{{ questions.length }} câu đã trả lời</span>
+            <span
+              v-if="remainingSeconds !== null"
+              class="exam-timer"
+              :class="{ urgent: remainingSeconds < 300 }"
+              aria-live="polite"
+              >Còn {{ remainingLabel }}</span
+            >
+          </div>
           <div class="progress-track">
             <i
               :style="{

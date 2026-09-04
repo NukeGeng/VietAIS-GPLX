@@ -16,7 +16,7 @@ Ngày kiểm tra: 2026-09-04
 - [x] Authorization dùng permission policies; admin token smoke test có 13 permissions, endpoint protected không token trả `401`.
 - [x] SSR/SEO/GEO: canonical, dynamic metadata, JSON-LD, semantic public pages, `/robots.txt`, dynamic sitemap. Sitemap smoke test có 606 URL; invalid license trả `404`.
 - [x] Nginx có reverse proxy, public GET cache, rate limit, gzip và security headers; `docker compose config` pass.
-- [x] Backend giữ stateless request model; timer dùng `StartedAt`/`ExpiresAt`, không lưu tick event.
+- [x] Backend giữ stateless request model; timer dùng `StartedAt`/`ExpiresAt`, không lưu tick event; màn hình thi hiển thị countdown client-side từ `ExpiresAt`.
 - [x] Verification pass: data validator, `dotnet build`, `dotnet test` (5/5), Nuxt production build, `npm audit --omit=dev` (0 vulnerability), NuGet vulnerability check (none).
 - [x] Không thêm microservice, broker, Redis, Kubernetes, generic repository hoặc feature ngoài GOAL.
 
