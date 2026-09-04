@@ -1,0 +1,28 @@
+.DS_Store
+.idea/
+.vscode/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+TestResults/
+
+# Node/Nuxt
+frontend/node_modules/
+frontend/.nuxt/
+frontend/.output/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Local runtime data
+backend/.local/
+data/.local/
+*.log
+
+# Secrets
+*.pfx
+*.pem
+appsettings.*.json
