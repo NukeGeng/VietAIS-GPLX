@@ -44,6 +44,7 @@ Inline `ExamAttemptView`/`ExamAttemptSnapshot` provide immediate command feedbac
 - `npm audit --omit=dev` — 0 vulnerabilities
 - NuGet vulnerability check — no vulnerable packages
 - Docker Compose syntax — pass with required environment placeholders
+- Full Docker Compose production build/runtime — API and frontend images built successfully; Postgres healthy; Nginx `nginx -t` and public reverse-proxy smoke pass
 - API smoke: health, public question/practice/regulation/blueprint endpoints, admin login/permissions, projection status, B exam start/answer/submit
 - Exam interaction smoke: flag/unflag updates the inline attempt view and is exposed in the exam question index and current-question toolbar.
 - Exam UI derives its countdown from the pinned `ExpiresAt`; no timer ticks are persisted as events.

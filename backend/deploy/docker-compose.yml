@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${GPLX_POSTGRES_USER:-gplx}
       POSTGRES_PASSWORD: ${GPLX_POSTGRES_PASSWORD:?set GPLX_POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${GPLX_POSTGRES_PORT:-5432}:5432"
     volumes:
       - gplx-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +31,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "5080:8080"
+      - "${GPLX_API_PORT:-5080}:8080"
 
   frontend:
     build:
@@ -52,7 +52,7 @@ services:
       - api
       - frontend
     ports:
-      - "8080:80"
+      - "${GPLX_NGINX_PORT:-8080}:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
 

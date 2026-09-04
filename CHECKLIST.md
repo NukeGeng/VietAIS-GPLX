@@ -17,6 +17,7 @@ Ngày kiểm tra: 2026-09-04
 - [x] SSR/SEO/GEO: canonical, dynamic metadata, JSON-LD, semantic public pages, `/robots.txt`, dynamic sitemap. Sitemap smoke test có 606 URL; invalid license trả `404`.
 - [x] Nginx có reverse proxy, public GET cache, rate limit, gzip và security headers; Compose yêu cầu PostgreSQL/JWT/Admin secrets qua environment; `docker compose config` pass.
 - [x] Backend giữ stateless request model; timer dùng `StartedAt`/`ExpiresAt`, không lưu tick event; màn hình thi hiển thị countdown client-side từ `ExpiresAt`.
+- [x] Full Docker Compose production stack đã build thành công; Postgres healthy, API/frontend/Nginx chạy cùng nhau; smoke qua Nginx pass và `nginx -t` pass. Local verification dùng `GPLX_*_PORT` để tránh cổng host đang bận.
 - [x] Verification pass: data validator, `dotnet build`, `dotnet test` (5/5), Nuxt production build, `npm audit --omit=dev` (0 vulnerability), NuGet vulnerability check (none).
 - [x] Không thêm microservice, broker, Redis, Kubernetes, generic repository hoặc feature ngoài GOAL.
 
@@ -36,5 +37,4 @@ Ngày kiểm tra: 2026-09-04
 
 ## Known verification limits
 
-- Docker daemon chưa chạy trong môi trường kiểm tra nên chưa thực hiện full container build/up.
-- Nginx binary không cài trong máy nên chưa chạy `nginx -t`; config syntax/Compose wiring đã được kiểm tra qua file và `docker compose config`.
+- Browser visual QA vẫn chưa chạy được vì in-app browser không khả dụng; PR tiếp tục giữ Draft cho đến khi có runtime này.
