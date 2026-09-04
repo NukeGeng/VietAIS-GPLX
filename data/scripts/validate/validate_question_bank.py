@@ -34,6 +34,8 @@ def validate(root: Path) -> list[str]:
         question_ids.add(question_id)
         if not question.get("text") or not question.get("topic"):
             errors.append(f"{prefix}: text and topic are required")
+        if not question.get("explanation") or not question.get("memoryTip"):
+            errors.append(f"{prefix}: explanation and memoryTip are required")
         if not set(question.get("licenseClassSlugs", [])) & class_slugs:
             errors.append(f"{prefix}: at least one known license class is required")
         options = question.get("options", [])

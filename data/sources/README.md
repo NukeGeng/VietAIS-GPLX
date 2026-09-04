@@ -22,14 +22,18 @@ official CSGT publication, and run:
 python data/scripts/extract/extract_csgt_2025.py \
   --input /path/to/official-600-question-bank.pdf \
   --output data/normalized/question-banks/v1.json
+python data/scripts/normalize/enrich_question_content.py \
+  --input data/normalized/question-banks/v1.json \
+  --output data/normalized/question-banks/v1.json
 python data/scripts/validate/validate_question_bank.py
 ```
 
 The extractor reads the underlines in the PDF as the answer key and fails if
 it cannot find exactly one answer for every question. It does not import
 competitor explanations, watermarks, or proprietary assets. Explanations and
-memory tips remain editable Question Bank fields and are blank when they are
-not present in the official source.
+memory tips are editorial Question Bank fields: the enrichment step adds a
+conservative baseline from the official answer text and topic, while preserving
+manually authored content for later editorial review.
 
 ## Canonical references
 
