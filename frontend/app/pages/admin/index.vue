@@ -113,6 +113,23 @@ async function publish(
   }
 }
 
+async function deprecateBank(bank: VersionedItem) {
+  if (actionId.value) return;
+  actionId.value = bank.id;
+  error.value = "";
+  try {
+    await request(`/admin/question-banks/${bank.id}/deprecate`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+    await loadAdmin();
+  } catch {
+    error.value = "Không thể deprecate phiên bản Question Bank.";
+  } finally {
+    actionId.value = "";
+  }
+}
+
 async function importQuestionBank() {
   if (importing.value || !importPayload.value.trim()) return;
   importing.value = true;
@@ -199,6 +216,12 @@ onMounted(loadAdmin);
               :disabled="actionId === bank.id"
               @click="publish('question-banks', bank)"
             >{{ actionId === bank.id ? "…" : "Publish" }}</button>
+            <button
+              v-if="bank.status !== 'Published' && bank.status !== 'Deprecated'"
+              class="text-link-button"
+              :disabled="actionId === bank.id"
+              @click="deprecateBank(bank)"
+            >{{ actionId === bank.id ? "…" : "Deprecate" }}</button>
           </div>
         </div>
       </article>

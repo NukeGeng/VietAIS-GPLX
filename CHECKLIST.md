@@ -12,7 +12,7 @@ Ngày kiểm tra: 2026-09-04
 - [x] Inline read models `ExamAttemptView` và `ExamAttemptSnapshot` được lưu cùng transaction command.
 - [x] Async `QuestionPerformanceProjection` chạy qua Marten Async Daemon; projection status runtime `running=true`, `stale=false`, endpoint rebuild trả `202`, rebuild không đổi tổng analytics `485`, và bài thi sau rebuild tăng đúng `+30` lượt chấm.
 - [x] Wolverine xử lý command và transaction với Marten; không thêm external broker.
-- [x] Admin quản lý version: import/validate/preview/publish/deprecate Question Bank, sửa question draft, quản lý License Class, lưu/publish Regulation và Exam Blueprint.
+- [x] Admin quản lý version: import/validate/preview/publish/deprecate Question Bank (nút deprecate có trong portal), sửa question draft, quản lý License Class, lưu/publish Regulation và Exam Blueprint.
 - [x] Authorization dùng permission policies; admin token smoke test có 13 permissions, endpoint protected không token trả `401`.
 - [x] SSR/SEO/GEO: canonical, dynamic metadata, JSON-LD, semantic public pages, `/robots.txt`, dynamic sitemap. Sitemap smoke test có 606 URL; invalid license trả `404`.
 - [x] Nginx có reverse proxy, public GET cache, rate limit, gzip và security headers; Compose yêu cầu PostgreSQL/JWT/Admin secrets qua environment; `docker compose config` pass.
