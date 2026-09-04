@@ -1,0 +1,40 @@
+# VietAIS GPLX — V1 completion checklist
+
+Ngày kiểm tra: 2026-09-04
+
+## Definition of Done
+
+- [x] Official data được normalize, validate và seed/import. Bundle hiện có 600 câu, 60 câu điểm liệt; validator pass; API development seed đã ghi dữ liệu vào Marten.
+- [x] Public question/practice reads chỉ expose câu thuộc Question Bank đã publish; import version mới không ghi đè identity câu hỏi của version cũ.
+- [x] Guest chọn hạng bằng và thi thử end-to-end. Smoke test B chạy `start → 30 answers → submit`: 30/30, 0 critical mistake, `passed=true`; flag/unflag cũng đã kiểm tra qua API và được expose trên màn hình thi.
+- [x] `ExamAttempt` là Event-Sourced Aggregate với các event start/answer/change/flag/unflag/submit/score/question-score.
+- [x] Snapshot dùng cho command-side: loader đọc `ExamAttemptSnapshot` rồi chỉ fetch delta events; snapshot mới nhất của smoke test ở stream version 63, có 30 question IDs và 30 answers.
+- [x] Inline read models `ExamAttemptView` và `ExamAttemptSnapshot` được lưu cùng transaction command.
+- [x] Async `QuestionPerformanceProjection` chạy qua Marten Async Daemon; projection status runtime `running=true`, `stale=false`, endpoint rebuild trả `202`, rebuild không đổi tổng analytics `485`, và bài thi sau rebuild tăng đúng `+30` lượt chấm.
+- [x] Wolverine xử lý command và transaction với Marten; không thêm external broker.
+- [x] Admin quản lý version: import/validate/preview/publish/deprecate Question Bank (nút deprecate có trong portal), sửa question draft, quản lý License Class, lưu/publish Regulation và Exam Blueprint.
+- [x] Authorization dùng permission policies; admin token smoke test có 13 permissions, endpoint protected không token trả `401`.
+- [x] SSR/SEO/GEO: canonical, dynamic metadata, JSON-LD, semantic public pages, `/robots.txt`, dynamic sitemap. Sitemap smoke test có 606 URL; invalid license trả `404`.
+- [x] Nginx có reverse proxy, public GET cache, rate limit, gzip và security headers; Compose yêu cầu PostgreSQL/JWT/Admin secrets qua environment; `docker compose config` pass.
+- [x] Backend giữ stateless request model; timer dùng `StartedAt`/`ExpiresAt`, không lưu tick event; màn hình thi hiển thị countdown client-side từ `ExpiresAt`.
+- [x] Full Docker Compose production stack đã build thành công; Postgres healthy, API/frontend/Nginx chạy cùng nhau; smoke qua Nginx pass và `nginx -t` pass. Local verification dùng `GPLX_*_PORT` để tránh cổng host đang bận.
+- [x] Verification pass: data validator, `dotnet build`, `dotnet test` (5/5), Nuxt production build, `npm audit --omit=dev` (0 vulnerability), NuGet vulnerability check (none).
+- [x] Không thêm microservice, broker, Redis, Kubernetes, generic repository hoặc feature ngoài GOAL.
+
+## Frontend reference review
+
+- [x] Đã inspect source read-only tại `/Users/dangvyhao/Documents/NLT_Tranning/front-end/nlt-smart-gas`.
+- [x] GPLX reuse visual language: compact Inter/system typography, coral accent, card/button/input states, spacing và responsive grid.
+- [x] Không sửa hoặc commit source reference; không copy Smart Gas business logic/API.
+- [x] Route-level SSR smoke test pass trên desktop-oriented HTML responses; mobile/tablet CSS breakpoints đã có trong stylesheet.
+- [x] Browser screenshot/manual interaction QA pass trên desktop 1440×900, tablet 768×1024 và mobile 390×844: homepage responsive; question search/filter/detail và empty state; practice answer/pagination/license/topic/critical filters; exam timer/answer/flag/back/submit/result; regulations, license B/C1, invalid license 404; admin login error và protected portal state.
+
+## Git / PR state
+
+- [x] `main` và `develop` đã được tạo, remote HTTPS đã push baseline commit `309f82b`.
+- [x] Implementation nằm trên branch `module/be-foundation`; branch đã push và working tree sạch.
+- [x] Draft PR đã mở vào `develop`: [PR #1](https://github.com/NukeGeng/VietAIS-GPLX/pull/1); CI data/backend/frontend pass ở cả push và pull request.
+
+## Known verification limits
+
+- Chưa triển khai production TLS hoặc secret thật; local production-like Compose vẫn yêu cầu cấu hình `GPLX_*` khi deploy.

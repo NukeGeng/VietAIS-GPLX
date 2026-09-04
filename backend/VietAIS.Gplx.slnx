@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Gplx.Api/Gplx.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Gplx.Api.Tests/Gplx.Api.Tests.csproj" />
+  </Folder>
+</Solution>
